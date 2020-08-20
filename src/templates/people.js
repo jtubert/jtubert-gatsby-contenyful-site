@@ -26,14 +26,14 @@ class PeopleTemplate extends React.Component {
 export default PeopleTemplate
 
 export const pageQuery = graphql`
-  query PeoplQuery($slug: String!) {
+  query PeoplQueryBySlug($slug: String!) {
     contentfulPerson(slug: { eq: $slug }) {
       name
       shortBio {
         shortBio
       }
       title
-      heroImage: image {
+      heroImage {
         fluid(
           maxWidth: 1180
           maxHeight: 480
