@@ -1,14 +1,8 @@
 const Promise = require('bluebird')
 const path = require('path')
 
-exports.createPages = ({ graphql, actions }) => {
-  const { createPage } = actions
-
-  return new Promise((resolve, reject) => {
-    const blogPost = path.resolve('./src/templates/blog-post.js')
-    resolve(
-      graphql(
-        `
+exports.createPages = async function ({ actions, graphql }) {
+  return graphql(`
           {
             allContentfulBlogPost {
               edges {
@@ -18,32 +12,6 @@ exports.createPages = ({ graphql, actions }) => {
                 }
               }
             }
-          }
-        `
-      ).then(result => {
-        if (result.errors) {
-          console.log(result.errors)
-          reject(result.errors)
-        }
-
-        const posts = result.data.allContentfulBlogPost.edges
-        posts.forEach(post => {
-          createPage({
-            path: `/blog/${post.node.slug}/`,
-            component: blogPost,
-            context: {
-              slug: post.node.slug,
-            },
-          })
-        })
-      })
-    )
-
-    const people = path.resolve('./src/templates/people.js')
-    resolve(
-      graphql(
-        `
-          {
             allContentfulPerson {
               edges {
                 node {
@@ -65,25 +33,26 @@ exports.createPages = ({ graphql, actions }) => {
               }
             }
           }
-        `
-      ).then(result => {
-        if (result.errors) {
-          console.log(result.errors)
-          reject(result.errors)
-        }
-
-        const posts = result.data.allContentfulPerson.edges
-        posts.forEach(post => {
-          createPage({
-            path: `/people/${post.node.slug}/`,
-            component: people,
-            context: {
-              slug: post.node.slug,
-            },
-          })
-        })
+  `).then(res => {
+    res.data.allContentfulBlogPost.edges.forEach(edge => {
+      actions.createPage({
+        path: `/blog/${edge.node.slug}/`,
+        component: require.resolve('./src/templates/blog-post.js'),
+        context: {
+          slug: edge.node.slug,
+        },
       })
-    )
+    })
 
+    res.data.allContentfulPerson.edges.forEach(edge => {
+      actions.createPage({
+        path: `/people/${edge.node.slug}/`,
+        component: require.resolve('./src/templates/people.js'),
+        context: {
+          slug: edge.node.slug,
+        },
+      })
+    })
   })
+
 }
